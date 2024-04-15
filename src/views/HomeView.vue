@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, shallowRef } from 'vue'
-import { Cartesian3, UrlTemplateImageryProvider, Viewer } from 'cesium'
+import { Cartesian3, UrlTemplateImageryProvider, Viewer, WebMercatorTilingScheme } from 'cesium'
 import 'cesium/Build/CesiumUnminified/Widgets/widgets.css'
 
 // cesium静态资源处理
@@ -26,21 +26,50 @@ const goGuGongPos = (longitude: number, latitude: number, height: number) => {
   // 手动设置初始坐标
   viewerRef.value?.camera.setView({ destination: initialPosition })
 }
+
 // 加载天地图影像图层
 const loadMapFromTianditu = () => {
-  /**
-   * 这里创建了一个UrlTemplateImageryProvider对象，并设置其中的url属性，将其指定为从天地图服务器加载瓦片的URL模板。
-   * 其中{s}是天地图的多个子域之一，{x}、{y}和{z}分别表示瓦片的行列号和级别。tk为天地图开放平台申请的密钥。
-   * 这里需要设置subdomains数组以用于轮询不同的服务器。此外，还可以设置瓦片的最大和最小级别。
-   */
+  // const token = 'bcc62222fc634ec736589c483de933e6'
+  const token = '0cf3d62714dd9f6d3b2a9af13ea80566'
+  // 服务域名
+  const tdtUrl = 'https://t{s}.tianditu.gov.cn/'
+  // 服务负载子域
+  const subdomains = ['0', '1', '2', '3', '4', '5', '6', '7']
+
+  // 叠加影像服务
   const tdtImageryProvider = new UrlTemplateImageryProvider({
-    url: 'http://{s}.tianditu.com/DataServer?T=img_w&X={x}&Y={y}&L={z}&tk=0cf3d62714dd9f6d3b2a9af13ea80566',
-    subdomains: ['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7'],
+    url:
+      tdtUrl +
+      'img_w/wmts?service=WMTS&version=1.0.0&request=GetTile&tilematrix={z}&layer=img&style=default&tilerow={y}&tilecol={x}&tilematrixset=w&format=tiles&tk=' +
+      token,
+    subdomains,
+    tilingScheme: new WebMercatorTilingScheme(),
     maximumLevel: 18,
-    minimumLevel: 1,
     credit: 'Tianditu'
   })
   viewerRef.value?.imageryLayers.addImageryProvider(tdtImageryProvider)
+
+  // 叠加文字标注
+  const tdtImageryProvider1 = new UrlTemplateImageryProvider({
+    url:
+      tdtUrl +
+      'cia_w/wmts?service=WMTS&version=1.0.0&request=GetTile&tilematrix={z}&layer=cia&style=default&tilerow={y}&tilecol={x}&tilematrixset=w&format=tiles&tk=' +
+      token,
+    subdomains,
+    tilingScheme: new WebMercatorTilingScheme(),
+    maximumLevel: 18,
+    credit: 'Tianditu1'
+  })
+  viewerRef.value?.imageryLayers.addImageryProvider(tdtImageryProvider1)
+
+  // 叠加国界服务
+  const iboMap = new UrlTemplateImageryProvider({
+    url: tdtUrl + 'DataServer?T=ibo_w&x={x}&y={y}&l={z}&tk=' + token,
+    subdomains: subdomains,
+    tilingScheme: new WebMercatorTilingScheme(),
+    maximumLevel: 10
+  })
+  viewerRef.value?.imageryLayers.addImageryProvider(iboMap)
 }
 
 onMounted(() => {
@@ -56,7 +85,10 @@ onMounted(() => {
     selectionIndicator: false, //选取指示器组件
     timeline: false, //时间轴
     navigationHelpButton: false, //帮助按钮
-    navigationInstructionsInitiallyVisible: false
+    navigationInstructionsInitiallyVisible: false,
+    shouldAnimate: true, //是否允许动画
+    showRenderLoopErrors: false,
+    shadows: false
   })
   hiddenCopyright()
   goGuGongPos(116.391, 39.9163, 2000.0)
