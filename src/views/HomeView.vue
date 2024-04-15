@@ -14,7 +14,18 @@ window.CESIUM_BASE_URL = 'node_modules/cesium/Build/CesiumUnminified/'
 const viewerDivRef = ref<HTMLDivElement>()
 const viewerRef = shallowRef<Viewer>()
 
-const initialPosition = Cartesian3.fromDegrees(116.391, 39.9163, 2000.0)
+// 隐藏版权信息
+const hiddenCopyright = () => {
+  const copyRightEl = viewerRef.value?.cesiumWidget.creditContainer as HTMLDivElement
+  copyRightEl.style.display = 'none'
+}
+// 去故宫位置
+const goGuGongPos = (longitude: number, latitude: number, height: number) => {
+  // 故宫经纬度转换
+  const initialPosition = Cartesian3.fromDegrees(longitude, latitude, height)
+  // 手动设置初始坐标
+  viewerRef.value?.camera.setView({ destination: initialPosition })
+}
 
 onMounted(() => {
   // 初始化地球，并且隐藏原始的cesium配置项
@@ -31,12 +42,8 @@ onMounted(() => {
     navigationHelpButton: false, //帮助按钮
     navigationInstructionsInitiallyVisible: false
   })
-  // 隐藏版权信息
-  const copyRightEl = viewerRef.value.cesiumWidget.creditContainer as HTMLDivElement
-  copyRightEl.style.display = 'none'
-  // 手动设置初始坐标
-  viewerRef.value.camera.setView({ destination: initialPosition })
-  console.log('cesiums实例对象', viewerRef.value)
+  hiddenCopyright()
+  goGuGongPos(116.391, 39.9163, 2000.0)
 })
 </script>
 
