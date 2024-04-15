@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, shallowRef } from 'vue'
-import { Cartesian3, Viewer } from 'cesium'
+import { Cartesian3, UrlTemplateImageryProvider, Viewer } from 'cesium'
 import 'cesium/Build/CesiumUnminified/Widgets/widgets.css'
 
 // cesium静态资源处理
@@ -26,6 +26,22 @@ const goGuGongPos = (longitude: number, latitude: number, height: number) => {
   // 手动设置初始坐标
   viewerRef.value?.camera.setView({ destination: initialPosition })
 }
+// 加载天地图影像图层
+const loadMapFromTianditu = () => {
+  /**
+   * 这里创建了一个UrlTemplateImageryProvider对象，并设置其中的url属性，将其指定为从天地图服务器加载瓦片的URL模板。
+   * 其中{s}是天地图的多个子域之一，{x}、{y}和{z}分别表示瓦片的行列号和级别。tk为天地图开放平台申请的密钥。
+   * 这里需要设置subdomains数组以用于轮询不同的服务器。此外，还可以设置瓦片的最大和最小级别。
+   */
+  const tdtImageryProvider = new UrlTemplateImageryProvider({
+    url: 'http://{s}.tianditu.com/DataServer?T=img_w&X={x}&Y={y}&L={z}&tk=0cf3d62714dd9f6d3b2a9af13ea80566',
+    subdomains: ['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7'],
+    maximumLevel: 18,
+    minimumLevel: 1,
+    credit: 'Tianditu'
+  })
+  viewerRef.value?.imageryLayers.addImageryProvider(tdtImageryProvider)
+}
 
 onMounted(() => {
   // 初始化地球，并且隐藏原始的cesium配置项
@@ -44,6 +60,7 @@ onMounted(() => {
   })
   hiddenCopyright()
   goGuGongPos(116.391, 39.9163, 2000.0)
+  loadMapFromTianditu()
 })
 </script>
 
