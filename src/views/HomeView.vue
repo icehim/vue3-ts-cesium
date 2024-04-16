@@ -29,8 +29,8 @@ const goGuGongPos = (longitude: number, latitude: number, height: number) => {
 
 // 加载天地图影像图层
 const loadMapFromTianditu = () => {
-  // const token = 'bcc62222fc634ec736589c483de933e6'
-  const token = '0cf3d62714dd9f6d3b2a9af13ea80566'
+  const token = 'bcc62222fc634ec736589c483de933e6'
+  // const token = '0cf3d62714dd9f6d3b2a9af13ea80566'
   // 服务域名
   const tdtUrl = 'https://t{s}.tianditu.gov.cn/'
   // 服务负载子域
@@ -38,38 +38,23 @@ const loadMapFromTianditu = () => {
 
   // 叠加影像服务
   const tdtImageryProvider = new UrlTemplateImageryProvider({
-    url:
-      tdtUrl +
-      'img_w/wmts?service=WMTS&version=1.0.0&request=GetTile&tilematrix={z}&layer=img&style=default&tilerow={y}&tilecol={x}&tilematrixset=w&format=tiles&tk=' +
-      token,
+    url: tdtUrl + 'DataServer?T=img_w&x={x}&y={y}&l={z}&tk=' + token,
     subdomains,
     tilingScheme: new WebMercatorTilingScheme(),
     maximumLevel: 18,
-    credit: 'Tianditu'
+    credit: 'Tianditu-img_w'
   })
   viewerRef.value?.imageryLayers.addImageryProvider(tdtImageryProvider)
 
   // 叠加文字标注
   const tdtImageryProvider1 = new UrlTemplateImageryProvider({
-    url:
-      tdtUrl +
-      'cia_w/wmts?service=WMTS&version=1.0.0&request=GetTile&tilematrix={z}&layer=cia&style=default&tilerow={y}&tilecol={x}&tilematrixset=w&format=tiles&tk=' +
-      token,
+    url: tdtUrl + 'DataServer?T=cia_w&x={x}&y={y}&l={z}&tk=' + token,
     subdomains,
     tilingScheme: new WebMercatorTilingScheme(),
     maximumLevel: 18,
-    credit: 'Tianditu1'
+    credit: 'Tianditu-cia_w'
   })
   viewerRef.value?.imageryLayers.addImageryProvider(tdtImageryProvider1)
-
-  // 叠加国界服务
-  const iboMap = new UrlTemplateImageryProvider({
-    url: tdtUrl + 'DataServer?T=ibo_w&x={x}&y={y}&l={z}&tk=' + token,
-    subdomains: subdomains,
-    tilingScheme: new WebMercatorTilingScheme(),
-    maximumLevel: 10
-  })
-  viewerRef.value?.imageryLayers.addImageryProvider(iboMap)
 }
 
 onMounted(() => {
