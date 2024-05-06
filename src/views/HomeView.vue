@@ -12,7 +12,8 @@ import {
   WebMercatorTilingScheme,
   Math,
   Color,
-  Entity
+  Entity,
+  CustomDataSource
 } from 'cesium'
 import 'cesium/Build/CesiumUnminified/Widgets/widgets.css'
 
@@ -90,9 +91,10 @@ const registerMouseEvent = () => {
   }, ScreenSpaceEventType.LEFT_CLICK)
 }
 // 添加点
-const addPoint = () => {
+const addPoint = (dataSource: CustomDataSource) => {
   // 添加点：方式1
-  const pointEntity = viewerRef.value?.entities.add({
+  // const pointEntity = viewerRef.value?.entities.add()
+  const pointEntity = dataSource.entities.add({
     id: 'pointTest',
     position: Cartesian3.fromDegrees(116.391, 39.9163),
     point: {
@@ -102,7 +104,7 @@ const addPoint = () => {
       outlineWidth: 2
     }
   })
-  console.log(pointEntity)
+  // console.log(pointEntity)
   // 添加点：方式2
   const pointEntity2 = new Entity({
     id: 'pointTest2',
@@ -114,11 +116,12 @@ const addPoint = () => {
       outlineWidth: 4
     }
   })
-  viewerRef.value?.entities.add(pointEntity2)
+  // viewerRef.value?.entities.add(pointEntity2)
+  dataSource.entities.add(pointEntity2)
 }
 // 添加面
-const addArea = () => {
-  viewerRef.value?.entities.add({
+const addArea = (dataSource: CustomDataSource) => {
+  dataSource.entities.add({
     id: 'polygontest',
     name: 'Wyoming',
     polygon: {
@@ -138,8 +141,8 @@ const addArea = () => {
   })
 }
 // 添加线
-const addLine = () => {
-  viewerRef.value?.entities.add({
+const addLine = (dataSource: CustomDataSource) => {
+  dataSource.entities.add({
     id: 'polylinetest',
     name: 'boderLine',
     polyline: {
@@ -177,6 +180,36 @@ const addLine = () => {
   })
 }
 
+const handleEntity = () => {
+  // 使用dataSource方便管理
+  const dataSource = new CustomDataSource('entitiesData')
+  viewerRef.value?.dataSources.add(dataSource)
+
+  // 添加点
+  addPoint(dataSource)
+  // 添加面
+  addArea(dataSource)
+  // 添加线
+  addLine(dataSource)
+
+  // 👇适用于viewerRef.value?.entities.add()添加的实例
+  // 根据id获取实例
+  const tempEntity = viewerRef.value?.entities.getById('polylinetest')
+  // 调用方法移除
+  // 方式一
+  // viewerRef.value.entities.remove(tempEntity as Entity)
+  // 方式二
+  // viewerRef.value?.entities.removeById('polylinetest')
+
+  // 👇适用于dataSource添加的实例
+  const dataSourceEntity = dataSource.entities.getById('polylinetest')
+  // 调用方法移除
+  // 方式一
+  // dataSource.entities.remove(dataSourceEntity as Entity)
+  // 方式二
+  dataSource.entities.removeById('polylinetest')
+}
+
 onMounted(async () => {
   // 初始化地球，并且隐藏原始的cesium配置项
   viewerRef.value = new Viewer(viewerDivRef.value as HTMLElement, {
@@ -202,17 +235,13 @@ onMounted(async () => {
   // 隐藏版权信息
   hiddenCopyright()
   // setView故宫
-  goGuGongPos(116.391, 39.9163, 2000.0)
+  goGuGongPos(116.391, 39.9163, 2500000.0)
   // 加载天地图影像图层
   loadMapFromTianditu()
   // 注册鼠标点击事件
   registerMouseEvent()
-  // 添加点
-  addPoint()
-  // 添加面
-  addArea()
-  // 添加线
-  addLine()
+  // 获取或者移除添加的实例
+  handleEntity()
 })
 </script>
 
