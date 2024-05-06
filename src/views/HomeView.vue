@@ -1,25 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref, shallowRef } from 'vue'
 import {
-  Cartesian2,
   Cartesian3,
   CesiumTerrainProvider,
-  Ellipsoid,
-  ScreenSpaceEventHandler,
-  ScreenSpaceEventType,
   UrlTemplateImageryProvider,
   Viewer,
   WebMercatorTilingScheme,
-  Math,
-  Color,
-  CustomDataSource,
-  HorizontalOrigin,
-  VerticalOrigin,
-  NearFarScalar,
-  LabelStyle
+  ImageryLayer
 } from 'cesium'
 import 'cesium/Build/CesiumUnminified/Widgets/widgets.css'
-import pinSvg from '@/assets/images/pin.svg'
 
 // cesium静态资源处理
 // 开发环境
@@ -46,24 +35,7 @@ const goGuGongPos = (longitude: number, latitude: number, height: number) => {
 }
 
 // 加载天地图影像图层
-const loadMapFromTianditu = () => {
-  const token = 'bcc62222fc634ec736589c483de933e6'
-  // const token = '0cf3d62714dd9f6d3b2a9af13ea80566'
-  // 服务域名
-  const tdtUrl = 'https://t{s}.tianditu.gov.cn/'
-  // 服务负载子域
-  const subdomains = ['0', '1', '2', '3', '4', '5', '6', '7']
-
-  // 叠加影像服务
-  const tdtImageryProvider = new UrlTemplateImageryProvider({
-    url: tdtUrl + 'DataServer?T=img_w&x={x}&y={y}&l={z}&tk=' + token,
-    subdomains,
-    tilingScheme: new WebMercatorTilingScheme(),
-    maximumLevel: 18,
-    credit: 'Tianditu-img_w'
-  })
-  viewerRef.value?.imageryLayers.addImageryProvider(tdtImageryProvider)
-
+const loadMapFromTianditu = (token: string, tdtUrl: string, subdomains: string[]) => {
   // 叠加文字标注
   const tdtImageryProvider1 = new UrlTemplateImageryProvider({
     url: tdtUrl + 'DataServer?T=cia_w&x={x}&y={y}&l={z}&tk=' + token,
@@ -74,66 +46,13 @@ const loadMapFromTianditu = () => {
   })
   viewerRef.value?.imageryLayers.addImageryProvider(tdtImageryProvider1)
 }
-// 注册鼠标点击事件
-const registerMouseEvent = () => {
-  const handler = new ScreenSpaceEventHandler(viewerRef.value?.scene.canvas)
-  handler.setInputAction((movement: { position: Cartesian2 }) => {
-    const ray = viewerRef.value?.camera.getPickRay(movement.position)
-    if (!ray) return null
-    const position = viewerRef.value?.scene.globe.pick(ray, viewerRef.value?.scene)
-    // 平面坐标系（Cartesian2）
-    console.log('平面坐标系', movement.position)
-    // 笛卡尔空间直角坐标系（Cartesian3）
-    console.log('笛卡尔空间直角坐标系', position)
-    // WGS84弧度坐标
-    const cartographic = Ellipsoid.WGS84.cartesianToCartographic(position as Cartesian3)
-    console.log('WGS84弧度坐标', cartographic)
-    // 转换成经纬度
-    const longitude = Math.toDegrees(cartographic.longitude)
-    const latitude = Math.toDegrees(cartographic.latitude)
-    console.log('经度:', longitude, '纬度:', latitude)
-  }, ScreenSpaceEventType.LEFT_CLICK)
-}
-
-const handleEntity = () => {
-  const dataSource = new CustomDataSource('entitiesData')
-  viewerRef.value?.dataSources.add(dataSource)
-
-  let element = dataSource.entities.add({
-    position: Cartesian3.fromDegrees(108, 34, 10),
-    billboard: {
-      image: pinSvg,
-      scale: 0.5,
-      // sizeInMeters: true
-      horizontalOrigin: HorizontalOrigin.CENTER,
-      verticalOrigin: VerticalOrigin.BOTTOM
-      // pixelOffset: new Cartesian2(0, 20),
-      //alignedAxis: Cesium.Cartesian3.UNIT_Y,
-      // rotation: -1.57
-      // scaleByDistance: new NearFarScalar(20000, 1, 8000000, 0.1)
-      ////pixelOffsetScaleByDistance: new Cesium.NearFarScalar(20000, 10, 8000000, 100),
-      //translucencyByDistance : new Cesium.NearFarScalar(20000, 1, 8000000, 0),
-      //distanceDisplayCondition: new Cesium.DistanceDisplayCondition(2000, 800000),
-    },
-    label: {
-      text: '标签',
-      scale: 1,
-      style: LabelStyle.FILL_AND_OUTLINE,
-      fillColor: Color.BLUE,
-      outlineColor: Color.RED,
-      showBackground: false,
-      pixelOffset: new Cartesian2(0, -80),
-      backgroundColor: Color.BLACK,
-      eyeOffset: new Cartesian3(0, 0, -10)
-    },
-    point: {
-      pixelSize: 10,
-      color: Color.RED
-    }
-  })
-}
-
 onMounted(async () => {
+  const token = 'bcc62222fc634ec736589c483de933e6'
+  // const token = '0cf3d62714dd9f6d3b2a9af13ea80566'
+  // 服务域名
+  const tdtUrl = 'https://t{s}.tianditu.gov.cn/'
+  // 服务负载子域
+  const subdomains = ['0', '1', '2', '3', '4', '5', '6', '7']
   // 初始化地球，并且隐藏原始的cesium配置项
   viewerRef.value = new Viewer(viewerDivRef.value as HTMLElement, {
     animation: false, //动画小部件
@@ -150,6 +69,15 @@ onMounted(async () => {
     shouldAnimate: true, //是否允许动画
     showRenderLoopErrors: false,
     shadows: false,
+    baseLayer: new ImageryLayer( // 叠加天地图影像服务
+      new UrlTemplateImageryProvider({
+        url: tdtUrl + 'DataServer?T=img_w&x={x}&y={y}&l={z}&tk=' + token,
+        subdomains,
+        tilingScheme: new WebMercatorTilingScheme(),
+        maximumLevel: 18,
+        credit: 'Tianditu-img_w'
+      })
+    ),
     terrainProvider: await CesiumTerrainProvider.fromIonAssetId(3956, {
       requestWaterMask: true, //请求水体效果所需要的海岸线数据
       requestVertexNormals: true //请求地形照明数据
@@ -158,13 +86,9 @@ onMounted(async () => {
   // 隐藏版权信息
   hiddenCopyright()
   // setView故宫
-  goGuGongPos(116.391, 39.9163, 2500000.0)
-  // 加载天地图影像图层
-  loadMapFromTianditu()
-  // 注册鼠标点击事件
-  registerMouseEvent()
-  // 添加标牌billboard
-  handleEntity()
+  goGuGongPos(116.391, 39.9163, 1000000)
+  // 加载天地图文字标注图层
+  loadMapFromTianditu(token, tdtUrl, subdomains)
 })
 </script>
 
