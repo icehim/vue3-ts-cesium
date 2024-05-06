@@ -116,6 +116,27 @@ const addPoint = () => {
   })
   viewerRef.value?.entities.add(pointEntity2)
 }
+// 添加面
+const addArea = () => {
+  viewerRef.value?.entities.add({
+    id: 'polygontest',
+    name: 'Wyoming',
+    polygon: {
+      hierarchy: Cartesian3.fromDegreesArray([
+        109.080842, 45.002073, 105.91517, 45.002073, 104.058488, 44.996596, 104.053011, 43.002989,
+        104.053011, 41.003906, 105.728954, 40.998429, 107.919731, 41.003906, 109.04798, 40.998429,
+        111.047063, 40.998429, 111.047063, 42.000709, 111.047063, 44.476286, 111.05254, 45.002073,
+        109.080842, 45.002073
+      ]),
+      height: 100,
+      material: Color.RED.withAlpha(0.5),
+      outline: true,
+      outlineColor: Color.BLUE,
+      outlineWidth: 1,
+      fill: true
+    }
+  })
+}
 
 onMounted(async () => {
   // 初始化地球，并且隐藏原始的cesium配置项
@@ -149,6 +170,8 @@ onMounted(async () => {
   registerMouseEvent()
   // 添加点
   addPoint()
+  // 添加面
+  addArea()
 })
 </script>
 
