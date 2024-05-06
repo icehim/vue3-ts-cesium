@@ -10,7 +10,9 @@ import {
   UrlTemplateImageryProvider,
   Viewer,
   WebMercatorTilingScheme,
-  Math
+  Math,
+  Color,
+  Entity
 } from 'cesium'
 import 'cesium/Build/CesiumUnminified/Widgets/widgets.css'
 
@@ -87,6 +89,33 @@ const registerMouseEvent = () => {
     console.log('经度:', longitude, '纬度:', latitude)
   }, ScreenSpaceEventType.LEFT_CLICK)
 }
+// 添加点
+const addPoint = () => {
+  // 添加点：方式1
+  const pointEntity = viewerRef.value?.entities.add({
+    id: 'pointTest',
+    position: Cartesian3.fromDegrees(116.391, 39.9163),
+    point: {
+      pixelSize: 100,
+      color: Color.YELLOW,
+      outlineColor: Color.RED,
+      outlineWidth: 2
+    }
+  })
+  console.log(pointEntity)
+  // 添加点：方式2
+  const pointEntity2 = new Entity({
+    id: 'pointTest2',
+    position: Cartesian3.fromDegrees(116.391, 39.9163),
+    point: {
+      pixelSize: 80,
+      color: Color.GREEN,
+      outlineColor: Color.PINK,
+      outlineWidth: 4
+    }
+  })
+  viewerRef.value?.entities.add(pointEntity2)
+}
 
 onMounted(async () => {
   // 初始化地球，并且隐藏原始的cesium配置项
@@ -110,10 +139,16 @@ onMounted(async () => {
       requestVertexNormals: true //请求地形照明数据
     })
   })
+  // 隐藏版权信息
   hiddenCopyright()
+  // setView故宫
   goGuGongPos(116.391, 39.9163, 2000.0)
+  // 加载天地图影像图层
   loadMapFromTianditu()
+  // 注册鼠标点击事件
   registerMouseEvent()
+  // 添加点
+  addPoint()
 })
 </script>
 
