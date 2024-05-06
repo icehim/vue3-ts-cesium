@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, shallowRef } from 'vue'
 import {
-  type Cartesian2,
+  Cartesian2,
   Cartesian3,
   CesiumTerrainProvider,
   Ellipsoid,
@@ -12,10 +12,14 @@ import {
   WebMercatorTilingScheme,
   Math,
   Color,
-  Entity,
-  CustomDataSource
+  CustomDataSource,
+  HorizontalOrigin,
+  VerticalOrigin,
+  NearFarScalar,
+  LabelStyle
 } from 'cesium'
 import 'cesium/Build/CesiumUnminified/Widgets/widgets.css'
+import pinSvg from '@/assets/images/pin.svg'
 
 // cesium静态资源处理
 // 开发环境
@@ -90,124 +94,43 @@ const registerMouseEvent = () => {
     console.log('经度:', longitude, '纬度:', latitude)
   }, ScreenSpaceEventType.LEFT_CLICK)
 }
-// 添加点
-const addPoint = (dataSource: CustomDataSource) => {
-  // 添加点：方式1
-  // const pointEntity = viewerRef.value?.entities.add()
-  const pointEntity = dataSource.entities.add({
-    id: 'pointTest',
-    position: Cartesian3.fromDegrees(116.391, 39.9163),
-    point: {
-      pixelSize: 100,
-      color: Color.YELLOW,
-      outlineColor: Color.RED,
-      outlineWidth: 2
-    }
-  })
-  // console.log(pointEntity)
-  // 添加点：方式2
-  const pointEntity2 = new Entity({
-    id: 'pointTest2',
-    position: Cartesian3.fromDegrees(116.391, 39.9163),
-    point: {
-      pixelSize: 80,
-      color: Color.GREEN,
-      outlineColor: Color.PINK,
-      outlineWidth: 4
-    }
-  })
-  // viewerRef.value?.entities.add(pointEntity2)
-  dataSource.entities.add(pointEntity2)
-}
-// 添加面
-const addArea = (dataSource: CustomDataSource) => {
-  dataSource.entities.add({
-    id: 'polygontest',
-    name: 'Wyoming',
-    polygon: {
-      hierarchy: Cartesian3.fromDegreesArray([
-        109.080842, 45.002073, 105.91517, 45.002073, 104.058488, 44.996596, 104.053011, 43.002989,
-        104.053011, 41.003906, 105.728954, 40.998429, 107.919731, 41.003906, 109.04798, 40.998429,
-        111.047063, 40.998429, 111.047063, 42.000709, 111.047063, 44.476286, 111.05254, 45.002073,
-        109.080842, 45.002073
-      ]),
-      height: 100,
-      material: Color.RED.withAlpha(0.5),
-      outline: true,
-      outlineColor: Color.BLUE,
-      outlineWidth: 1,
-      fill: true
-    }
-  })
-}
-// 添加线
-const addLine = (dataSource: CustomDataSource) => {
-  dataSource.entities.add({
-    id: 'polylinetest',
-    name: 'boderLine',
-    polyline: {
-      positions: Cartesian3.fromDegreesArray([
-        109.080842,
-        45.002073 - 5,
-        105.91517,
-        45.002073 - 5,
-        104.058488,
-        44.996596 - 5,
-        104.053011,
-        43.002989 - 5,
-        104.053011,
-        41.003906 - 5,
-        105.728954,
-        40.998429 - 5,
-        107.919731,
-        41.003906 - 5,
-        109.04798,
-        40.998429 - 5,
-        111.047063,
-        40.998429 - 5,
-        111.047063,
-        42.000709 - 5,
-        111.047063,
-        44.476286 - 5,
-        111.05254,
-        45.002073 - 5,
-        109.080842,
-        45.002073 - 5
-      ]),
-      width: 2,
-      material: Color.YELLOW
-    }
-  })
-}
 
 const handleEntity = () => {
-  // 使用dataSource方便管理
   const dataSource = new CustomDataSource('entitiesData')
   viewerRef.value?.dataSources.add(dataSource)
 
-  // 添加点
-  addPoint(dataSource)
-  // 添加面
-  addArea(dataSource)
-  // 添加线
-  addLine(dataSource)
-
-  // 👇适用于viewerRef.value?.entities.add()添加的实例
-  // 根据id获取实例
-  const tempEntity = viewerRef.value?.entities.getById('polylinetest')
-  // 调用方法移除
-  // 方式一
-  // viewerRef.value.entities.remove(tempEntity as Entity)
-  // 方式二
-  // viewerRef.value?.entities.removeById('polylinetest')
-
-  // 👇适用于dataSource添加的实例
-  const dataSourceEntity = dataSource.entities.getById('polylinetest')
-  // 调用方法移除
-  // 方式一
-  // dataSource.entities.remove(dataSourceEntity as Entity)
-  // 方式二
-  dataSource.entities.removeById('polylinetest')
+  let element = dataSource.entities.add({
+    position: Cartesian3.fromDegrees(108, 34, 10),
+    billboard: {
+      image: pinSvg,
+      scale: 0.5,
+      // sizeInMeters: true
+      horizontalOrigin: HorizontalOrigin.CENTER,
+      verticalOrigin: VerticalOrigin.BOTTOM
+      // pixelOffset: new Cartesian2(0, 20),
+      //alignedAxis: Cesium.Cartesian3.UNIT_Y,
+      // rotation: -1.57
+      // scaleByDistance: new NearFarScalar(20000, 1, 8000000, 0.1)
+      ////pixelOffsetScaleByDistance: new Cesium.NearFarScalar(20000, 10, 8000000, 100),
+      //translucencyByDistance : new Cesium.NearFarScalar(20000, 1, 8000000, 0),
+      //distanceDisplayCondition: new Cesium.DistanceDisplayCondition(2000, 800000),
+    },
+    label: {
+      text: '标签',
+      scale: 1,
+      style: LabelStyle.FILL_AND_OUTLINE,
+      fillColor: Color.BLUE,
+      outlineColor: Color.RED,
+      showBackground: false,
+      pixelOffset: new Cartesian2(0, -80),
+      backgroundColor: Color.BLACK,
+      eyeOffset: new Cartesian3(0, 0, -10)
+    },
+    point: {
+      pixelSize: 10,
+      color: Color.RED
+    }
+  })
 }
 
 onMounted(async () => {
@@ -240,7 +163,7 @@ onMounted(async () => {
   loadMapFromTianditu()
   // 注册鼠标点击事件
   registerMouseEvent()
-  // 获取或者移除添加的实例
+  // 添加标牌billboard
   handleEntity()
 })
 </script>
