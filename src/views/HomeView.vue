@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { onMounted, ref, shallowRef } from 'vue'
 import {
+  type Cartesian2,
   Cartesian3,
   CesiumTerrainProvider,
+  Ellipsoid,
+  ScreenSpaceEventHandler,
+  ScreenSpaceEventType,
   UrlTemplateImageryProvider,
   Viewer,
-  WebMercatorTilingScheme
+  WebMercatorTilingScheme,
+  Math
 } from 'cesium'
 import 'cesium/Build/CesiumUnminified/Widgets/widgets.css'
 
@@ -62,6 +67,26 @@ const loadMapFromTianditu = () => {
   })
   viewerRef.value?.imageryLayers.addImageryProvider(tdtImageryProvider1)
 }
+// 注册鼠标点击事件
+const registerMouseEvent = () => {
+  const handler = new ScreenSpaceEventHandler(viewerRef.value?.scene.canvas)
+  handler.setInputAction((movement: { position: Cartesian2 }) => {
+    const ray = viewerRef.value?.camera.getPickRay(movement.position)
+    if (!ray) return null
+    const position = viewerRef.value?.scene.globe.pick(ray, viewerRef.value?.scene)
+    // 平面坐标系（Cartesian2）
+    console.log('平面坐标系', movement.position)
+    // 笛卡尔空间直角坐标系（Cartesian3）
+    console.log('笛卡尔空间直角坐标系', position)
+    // WGS84弧度坐标
+    const cartographic = Ellipsoid.WGS84.cartesianToCartographic(position as Cartesian3)
+    console.log('WGS84弧度坐标', cartographic)
+    // 转换成经纬度
+    const longitude = Math.toDegrees(cartographic.longitude)
+    const latitude = Math.toDegrees(cartographic.latitude)
+    console.log('经度:', longitude, '纬度:', latitude)
+  }, ScreenSpaceEventType.LEFT_CLICK)
+}
 
 onMounted(async () => {
   // 初始化地球，并且隐藏原始的cesium配置项
@@ -88,6 +113,7 @@ onMounted(async () => {
   hiddenCopyright()
   goGuGongPos(116.391, 39.9163, 2000.0)
   loadMapFromTianditu()
+  registerMouseEvent()
 })
 </script>
 
