@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref, shallowRef } from 'vue'
-import { Cartesian3, UrlTemplateImageryProvider, Viewer, WebMercatorTilingScheme } from 'cesium'
+import {
+  Cartesian3,
+  CesiumTerrainProvider,
+  UrlTemplateImageryProvider,
+  Viewer,
+  WebMercatorTilingScheme
+} from 'cesium'
 import 'cesium/Build/CesiumUnminified/Widgets/widgets.css'
 
 // cesium静态资源处理
@@ -57,7 +63,7 @@ const loadMapFromTianditu = () => {
   viewerRef.value?.imageryLayers.addImageryProvider(tdtImageryProvider1)
 }
 
-onMounted(() => {
+onMounted(async () => {
   // 初始化地球，并且隐藏原始的cesium配置项
   viewerRef.value = new Viewer(viewerDivRef.value as HTMLElement, {
     animation: false, //动画小部件
@@ -73,7 +79,11 @@ onMounted(() => {
     navigationInstructionsInitiallyVisible: false,
     shouldAnimate: true, //是否允许动画
     showRenderLoopErrors: false,
-    shadows: false
+    shadows: false,
+    terrainProvider: await CesiumTerrainProvider.fromIonAssetId(3956, {
+      requestWaterMask: true, //请求水体效果所需要的海岸线数据
+      requestVertexNormals: true //请求地形照明数据
+    })
   })
   hiddenCopyright()
   goGuGongPos(116.391, 39.9163, 2000.0)
