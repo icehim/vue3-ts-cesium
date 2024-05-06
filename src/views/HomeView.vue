@@ -137,6 +137,45 @@ const addArea = () => {
     }
   })
 }
+// 添加线
+const addLine = () => {
+  viewerRef.value?.entities.add({
+    id: 'polylinetest',
+    name: 'boderLine',
+    polyline: {
+      positions: Cartesian3.fromDegreesArray([
+        109.080842,
+        45.002073 - 5,
+        105.91517,
+        45.002073 - 5,
+        104.058488,
+        44.996596 - 5,
+        104.053011,
+        43.002989 - 5,
+        104.053011,
+        41.003906 - 5,
+        105.728954,
+        40.998429 - 5,
+        107.919731,
+        41.003906 - 5,
+        109.04798,
+        40.998429 - 5,
+        111.047063,
+        40.998429 - 5,
+        111.047063,
+        42.000709 - 5,
+        111.047063,
+        44.476286 - 5,
+        111.05254,
+        45.002073 - 5,
+        109.080842,
+        45.002073 - 5
+      ]),
+      width: 2,
+      material: Color.YELLOW
+    }
+  })
+}
 
 onMounted(async () => {
   // 初始化地球，并且隐藏原始的cesium配置项
@@ -172,6 +211,8 @@ onMounted(async () => {
   addPoint()
   // 添加面
   addArea()
+  // 添加线
+  addLine()
 })
 </script>
 
