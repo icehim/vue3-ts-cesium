@@ -82,7 +82,7 @@ const loadGeoJsonFn2 = () => {
       // 假设特征是多边形
       feature.geometry.coordinates.forEach((coordinate) => {
         viewerRef.value?.entities.add({
-          name: 'hbei',
+          name: 'beijing',
           polygon: {
             hierarchy: Cartesian3.fromDegreesArray(coordinate.flat(2)), // 数组碾平
             height: 10000,
