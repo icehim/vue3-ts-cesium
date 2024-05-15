@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, shallowRef } from 'vue'
 import {
-  type Cartesian2,
+  Cartesian2,
   Cartesian3,
   Ellipsoid,
   ScreenSpaceEventHandler,
