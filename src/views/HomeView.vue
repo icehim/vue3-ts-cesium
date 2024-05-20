@@ -13,6 +13,7 @@ import {
   ImageryLayer
 } from 'cesium'
 import 'cesium/Build/CesiumUnminified/Widgets/widgets.css'
+import * as turf from '@turf/turf'
 
 // cesium静态资源处理
 // 开发环境
@@ -73,6 +74,35 @@ const registerMouseEvent = () => {
   }, ScreenSpaceEventType.LEFT_CLICK)
 }
 
+const createTurf = () => {
+  // 创建点
+  const point = turf.point([109, 34], { name: 'point' })
+  // 折线
+  const lineString = turf.lineString(
+    [
+      [108, 34],
+      [109, 34],
+      [110, 34],
+      [111, 34]
+    ],
+    { name: 'lineString' }
+  )
+  //面
+  const polygon = turf.polygon(
+    [
+      [
+        [100, 34],
+        [108, 34.5],
+        [109, 34.5],
+        [109, 34],
+        [108, 34]
+      ]
+    ],
+    { name: 'polygon' }
+  )
+  console.log('point', point)
+}
+
 onMounted(async () => {
   // 天地图token
   // const token = 'bcc62222fc634ec736589c483de933e6'
@@ -122,6 +152,8 @@ onMounted(async () => {
   loadMapFromTianditu(token, tdtUrl, subdomains)
   // 注册鼠标点击事件
   registerMouseEvent()
+  // 前端地理空间分析库turfjs
+  createTurf()
 })
 </script>
 
